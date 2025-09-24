@@ -15,7 +15,7 @@
     h1 {
       color: #333;
     }
-    select, button {
+    select, input, button {
       padding: 10px;
       margin: 10px;
       border-radius: 8px;
@@ -41,6 +41,9 @@
 <body>
   <h1>Books Released by Month</h1>
 
+  <label for="year">Select Year:</label>
+  <input type="number" id="year" value="2023" min="1900" max="2025">
+
   <label for="month">Select Month:</label>
   <select id="month">
     <option value="">--Select--</option>
@@ -64,17 +67,22 @@
 
   <script>
     async function getBooks() {
+      const year = document.getElementById("year").value;
       const month = document.getElementById("month").value;
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "Loading books...";
 
-      if (!month) {
-        resultsDiv.innerHTML = "⚠️ Please select a month.";
+      if (!month || !year) {
+        resultsDiv.innerHTML = "⚠️ Please select both year and month.";
         return;
       }
 
-      // Example: searching books published in 2023-MM
-      const url = `https://openlibrary.org/search.json?publish_date=2023-${month}`;
+      // Create date range (YYYY-MM-01 to YYYY-MM-31)
+      const startDate = `${year}-${month}-01`;
+      const endDate = `${year}-${month}-31`;
+
+      // Query Open Library with publish_date range
+      const url = `https://openlibrary.org/search.json?publish_date=${startDate}..${endDate}`;
 
       try {
         const response = await fetch(url);
@@ -89,11 +97,11 @@
         data.docs.slice(0, 20).forEach(book => {
           const title = book.title || "Untitled";
           const author = book.author_name ? book.author_name.join(", ") : "Unknown Author";
-          const year = book.first_publish_year || "Unknown Year";
+          const pubDate = book.publish_date ? book.publish_date[0] : "Unknown Date";
 
           const div = document.createElement("div");
           div.classList.add("book");
-          div.innerHTML = `<strong>${title}</strong><br>👤 ${author}<br>📅 ${year}`;
+          div.innerHTML = `<strong>${title}</strong><br>👤 ${author}<br>📅 ${pubDate}`;
           resultsDiv.appendChild(div);
         });
       } catch (err) {
