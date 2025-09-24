@@ -64,6 +64,7 @@
   <div id="results"></div>
 
   <script>
+    // Fill year dropdown (2000 - current year)
     const yearSelect = document.getElementById("year");
     const currentYear = new Date().getFullYear();
     for (let y = currentYear; y >= 2000; y--) {
@@ -72,3 +73,57 @@
       option.textContent = y;
       yearSelect.appendChild(option);
     }
+
+    async function getBooks() {
+      const year = document.getElementById("year").value;
+      const month = document.getElementById("month").value;
+      const genre = document.getElementById("genre").value;
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Loading...";
+
+      // Fetch books by genre (up to 40)
+      const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${genre}&maxResults=40`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        resultsDiv.innerHTML = "";
+
+        if (!data.items || data.items.length === 0) {
+          resultsDiv.innerHTML = "<p>No books found for this selection.</p>";
+          return;
+        }
+
+        // Filter by selected year & month
+        const filtered = data.items.filter(book => {
+          if (!book.volumeInfo.publishedDate) return false;
+          const dateParts = book.volumeInfo.publishedDate.split("-");
+          const bookYear = dateParts[0];
+          const bookMonth = dateParts[1] ? dateParts[1] : "01";
+          return bookYear === year && bookMonth === month;
+        });
+
+        if (filtered.length === 0) {
+          resultsDiv.innerHTML = "<p>No books found for this selection.</p>";
+          return;
+        }
+
+        filtered.forEach(book => {
+          const info = book.volumeInfo;
+          const div = document.createElement("div");
+          div.className = "book";
+          div.innerHTML = `
+            <div class="title">${info.title || "No title"}</div>
+            <div>Author: ${info.authors ? info.authors.join(", ") : "Unknown"}</div>
+            <div>Published: ${info.publishedDate || "Unknown"}</div>
+            <div><a href="${info.previewLink}" target="_blank">Preview</a></div>
+          `;
+          resultsDiv.appendChild(div);
+        });
+      } catch (error) {
+        resultsDiv.innerHTML = "<p>Error fetching data.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
