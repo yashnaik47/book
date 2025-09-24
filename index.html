@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book Suggestion by Genre</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+    }
+    h1 {
+      color: #333;
+    }
+    select, button {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    #suggestion {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      width: 300px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <h1>Book Suggestions</h1>
+  <label for="genre">Choose a genre:</label>
+  <select id="genre">
+    <option value="">--Select--</option>
+    <option value="fiction">Fiction</option>
+    <option value="mystery">Mystery</option>
+    <option value="fantasy">Fantasy</option>
+    <option value="selfhelp">Self-Help</option>
+    <option value="history">History</option>
+  </select>
+  <button onclick="suggestBook()">Get Suggestion</button>
+
+  <div id="suggestion"></div>
+
+  <script>
+    function suggestBook() {
+      const genre = document.getElementById("genre").value;
+      let suggestion = "";
+
+      switch(genre) {
+        case "fiction":
+          suggestion = "📖 'To Kill a Mockingbird' by Harper Lee";
+          break;
+        case "mystery":
+          suggestion = "🕵️ 'The Girl with the Dragon Tattoo' by Stieg Larsson";
+          break;
+        case "fantasy":
+          suggestion = "🐉 'Harry Potter and the Sorcerer’s Stone' by J.K. Rowling";
+          break;
+        case "selfhelp":
+          suggestion = "💡 'Atomic Habits' by James Clear";
+          break;
+        case "history":
+          suggestion = "🏛️ 'Sapiens: A Brief History of Humankind' by Yuval Noah Harari";
+          break;
+        default:
+          suggestion = "⚠️ Please select a genre.";
+      }
+
+      document.getElementById("suggestion").innerText = suggestion;
+    }
+  </script>
+</body>
+</html>
