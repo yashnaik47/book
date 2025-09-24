@@ -77,38 +77,35 @@
         return;
       }
 
-      // Create date range (YYYY-MM-01 to YYYY-MM-31)
-      const startDate = `${year}-${month}-01`;
-      const endDate = `${year}-${month}-31`;
-
-      // Query Open Library with publish_date range
-      const url = `https://openlibrary.org/search.json?publish_date=${startDate}..${endDate}`;
+      // Google Books API (requires API key for heavy usage)
+      const apiKey = "YOUR_GOOGLE_BOOKS_API_KEY"; 
+      const query = `subject:fiction`; // You can change subject/keywords
+      const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&printType=books&orderBy=newest&maxResults=20&key=${apiKey}`;
 
       try {
         const response = await fetch(url);
         const data = await response.json();
 
-        if (!data.docs || data.docs.length === 0) {
-          resultsDiv.innerHTML = "No books found for this month.";
+        if (!data.items || data.items.length === 0) {
+          resultsDiv.innerHTML = "No books found.";
           return;
         }
 
         resultsDiv.innerHTML = "";
-        data.docs.slice(0, 20).forEach(book => {
-          const title = book.title || "Untitled";
-          const author = book.author_name ? book.author_name.join(", ") : "Unknown Author";
-          const pubDate = book.publish_date ? book.publish_date[0] : "Unknown Date";
+        data.items.forEach(book => {
+          const volume = book.volumeInfo;
+          const title = volume.title || "Untitled";
+          const author = volume.authors ? volume.authors.join(", ") : "Unknown Author";
+          const pubDate = volume.publishedDate || "Unknown Date";
 
-          const div = document.createElement("div");
-          div.classList.add("book");
-          div.innerHTML = `<strong>${title}</strong><br>👤 ${author}<br>📅 ${pubDate}`;
-          resultsDiv.appendChild(div);
+          // Filter by year + month
+          if (pubDate.startsWith(`${year}-${month}`)) {
+            const div = document.createElement("div");
+            div.classList.add("book");
+            div.innerHTML = `<strong>${title}</strong><br>👤 ${author}<br>📅 ${pubDate}`;
+            resultsDiv.appendChild(div);
+          }
         });
-      } catch (err) {
-        resultsDiv.innerHTML = "❌ Error fetching books.";
-        console.error(err);
-      }
-    }
-  </script>
-</body>
-</html>
+
+        if (resultsDiv.innerHTML === "") {
+          resultsDiv.innerHTML = "No b
