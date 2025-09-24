@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Book Suggestion by Genre</title>
+  <title>Books Released by Month</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -22,61 +22,84 @@
       border: 1px solid #ccc;
       font-size: 16px;
     }
-    #suggestion {
+    #results {
       margin-top: 20px;
       padding: 15px;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      width: 300px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: bold;
-      color: #444;
+      width: 500px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .book {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
     }
   </style>
 </head>
 <body>
-  <h1>Book Suggestions</h1>
-  <label for="genre">Choose a genre:</label>
-  <select id="genre">
-    <option value="">--Select--</option>
-    <option value="fiction">Fiction</option>
-    <option value="mystery">Mystery</option>
-    <option value="fantasy">Fantasy</option>
-    <option value="selfhelp">Self-Help</option>
-    <option value="history">History</option>
-  </select>
-  <button onclick="suggestBook()">Get Suggestion</button>
+  <h1>Books Released by Month</h1>
 
-  <div id="suggestion"></div>
+  <label for="month">Select Month:</label>
+  <select id="month">
+    <option value="">--Select--</option>
+    <option value="01">January</option>
+    <option value="02">February</option>
+    <option value="03">March</option>
+    <option value="04">April</option>
+    <option value="05">May</option>
+    <option value="06">June</option>
+    <option value="07">July</option>
+    <option value="08">August</option>
+    <option value="09">September</option>
+    <option value="10">October</option>
+    <option value="11">November</option>
+    <option value="12">December</option>
+  </select>
+
+  <button onclick="getBooks()">Get Books</button>
+
+  <div id="results"></div>
 
   <script>
-    function suggestBook() {
-      const genre = document.getElementById("genre").value;
-      let suggestion = "";
+    async function getBooks() {
+      const month = document.getElementById("month").value;
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Loading books...";
 
-      switch(genre) {
-        case "fiction":
-          suggestion = "📖 'To Kill a Mockingbird' by Harper Lee";
-          break;
-        case "mystery":
-          suggestion = "🕵️ 'The Girl with the Dragon Tattoo' by Stieg Larsson";
-          break;
-        case "fantasy":
-          suggestion = "🐉 'Harry Potter and the Sorcerer’s Stone' by J.K. Rowling";
-          break;
-        case "selfhelp":
-          suggestion = "💡 'Atomic Habits' by James Clear";
-          break;
-        case "history":
-          suggestion = "🏛️ 'Sapiens: A Brief History of Humankind' by Yuval Noah Harari";
-          break;
-        default:
-          suggestion = "⚠️ Please select a genre.";
+      if (!month) {
+        resultsDiv.innerHTML = "⚠️ Please select a month.";
+        return;
       }
 
-      document.getElementById("suggestion").innerText = suggestion;
+      // Example: searching books published in 2023-MM
+      const url = `https://openlibrary.org/search.json?publish_date=2023-${month}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.docs || data.docs.length === 0) {
+          resultsDiv.innerHTML = "No books found for this month.";
+          return;
+        }
+
+        resultsDiv.innerHTML = "";
+        data.docs.slice(0, 20).forEach(book => {
+          const title = book.title || "Untitled";
+          const author = book.author_name ? book.author_name.join(", ") : "Unknown Author";
+          const year = book.first_publish_year || "Unknown Year";
+
+          const div = document.createElement("div");
+          div.classList.add("book");
+          div.innerHTML = `<strong>${title}</strong><br>👤 ${author}<br>📅 ${year}`;
+          resultsDiv.appendChild(div);
+        });
+      } catch (err) {
+        resultsDiv.innerHTML = "❌ Error fetching books.";
+        console.error(err);
+      }
     }
   </script>
 </body>
