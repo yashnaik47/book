@@ -2,46 +2,102 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Books Released by Month</title>
+  <title>Book Finder</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f9;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 30px;
-    }
-    h1 { color: #333; }
-    select, input, button {
-      padding: 10px;
-      margin: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-    #results {
-      margin-top: 20px;
-      padding: 15px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      width: 600px;
-      max-height: 500px;
-      overflow-y: auto;
-    }
-    .book {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: inline-block; width: 100px; }
+    select, button { margin: 5px; padding: 5px; }
+    .book { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 8px; }
+    .title { font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>Books Released by Month</h1>
+  <h2>Find Books by Year, Month & Genre</h2>
 
-  <label for="year">Enter Year:</label>
-  <input type="number" id="year" placeholder="e.g. 2023" min="1900" max="2099">
+  <label for="year">Year:</label>
+  <select id="year"></select><br>
 
-  <label for="month">Select Month:</label>
+  <label for="month">Month:</label>
   <select id="month">
-    <option
+    <option value="01">January</option>
+    <option value="02">February</option>
+    <option value="03">March</option>
+    <option value="04">April</option>
+    <option value="05">May</option>
+    <option value="06">June</option>
+    <option value="07">July</option>
+    <option value="08">August</option>
+    <option value="09">September</option>
+    <option value="10">October</option>
+    <option value="11">November</option>
+    <option value="12">December</option>
+  </select><br>
+
+  <label for="genre">Genre:</label>
+  <select id="genre">
+    <option value="fiction">Fiction</option>
+    <option value="mystery">Mystery</option>
+    <option value="fantasy">Fantasy</option>
+    <option value="romance">Romance</option>
+    <option value="history">History</option>
+    <option value="science">Science</option>
+  </select><br>
+
+  <button onclick="getBooks()">Get Books</button>
+
+  <h3>Results:</h3>
+  <div id="results"></div>
+
+  <script>
+    // Fill year dropdown (2000 - current year)
+    const yearSelect = document.getElementById("year");
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear; y >= 2000; y--) {
+      const option = document.createElement("option");
+      option.value = y;
+      option.textContent = y;
+      yearSelect.appendChild(option);
+    }
+
+    async function getBooks() {
+      const year = document.getElementById("year").value;
+      const month = document.getElementById("month").value;
+      const genre = document.getElementById("genre").value;
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Loading...";
+
+      // date range for that month
+      const startDate = `${year}-${month}-01`;
+      const endDate = `${year}-${month}-31`;
+
+      const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${genre}+after:${startDate}+before:${endDate}&maxResults=10`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        resultsDiv.innerHTML = "";
+
+        if (!data.items || data.items.length === 0) {
+          resultsDiv.innerHTML = "<p>No books found for this selection.</p>";
+          return;
+        }
+
+        data.items.forEach(book => {
+          const info = book.volumeInfo;
+          const div = document.createElement("div");
+          div.className = "book";
+          div.innerHTML = `
+            <div class="title">${info.title || "No title"}</div>
+            <div>Author: ${info.authors ? info.authors.join(", ") : "Unknown"}</div>
+            <div>Published: ${info.publishedDate || "Unknown"}</div>
+            <div><a href="${info.previewLink}" target="_blank">Preview</a></div>
+          `;
+          resultsDiv.appendChild(div);
+        });
+      } catch (error) {
+        resultsDiv.innerHTML = "<p>Error fetching data.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
